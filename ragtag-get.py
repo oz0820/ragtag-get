@@ -9,7 +9,7 @@ import requests
 def video_rename():
     print("ダウンロードしたファイルを保存しているパスを指定して、SQフォーマットにリネームします。")
     str_path = input("targetPath> ")
-    p = Path(str_path)
+    p = Path(get_clean_path(str_path))
     for a in p.glob("*"):
         vid = a.stem.split(".")[0]  # .chat.json等に苦しめられた
         item = search_vid(vid)
@@ -144,8 +144,7 @@ def get_resource_urls():
             break
         elif s == "2":
             str_export_path = input("exportPath> ")
-            if str_export_path.startswith(('\'', '"')) and str_export_path.endswith(('\'', '"')):
-                str_export_path = str_ndp[1:-1]
+            str_export_path = get_clean_path(str_export_path)
             export_path = Path(str_export_path).resolve()
             if export_path.exists():
                 print(f"{export_path.name} は存在します。別の名前を指定してください。")
@@ -186,6 +185,13 @@ def search_vid(vid):
     return None
 
 
+def get_clean_path(raw_path):
+    if raw_path.startswith('\'') and raw_path.endswith('\'') or raw_path.startswith('"') and raw_path.endswith('"'):
+        return raw_path[1:-1]
+    else:
+        return raw_path
+
+
 # ファイルシステム上都合の悪い文字を置き換えます
 def replace_invalid_chars(filename):
     invalid_chars = r'<>:"/\|?*'
@@ -221,9 +227,7 @@ if __name__ == "__main__":
     str_ndp = input("> ")
     if str_ndp == "":
         str_ndp = "videos.ndjson"
-    if str_ndp.startswith(('\'', '"')) and str_ndp.endswith(('\'', '"')):
-        str_ndp = str_ndp[1:-1]
-    ndp = Path(str_ndp)
+    ndp = Path(get_clean_path(str_ndp))
     if ndp.exists() is False:
         print("ndjsonが見つかりません。参照先を確認してください。")
         sys.exit()
