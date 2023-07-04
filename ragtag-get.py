@@ -4,6 +4,7 @@ from pathlib import Path
 from bs4 import BeautifulSoup
 import ndjson
 import requests
+import concurrent.futures
 
 
 def video_rename():
@@ -135,6 +136,8 @@ def get_resource_urls():
     while True:
         print("1: コンソールに出力する")
         print("2: ファイルに保存する")
+        print("3: 総ファイルサイズを取得")
+        print("4: 終了")
         s = input(">> ")
         if s == "1":
             print("-----------------------------")
@@ -154,7 +157,12 @@ def get_resource_urls():
                     f.write(u + "\n")
             print(f"{export_path} に書き出しました。")
             break
-
+        elif s == "3":
+            total_size = get_total_size(output_list)
+            print(format_file_size(total_size))
+            print()
+        elif s == "4":
+            break
     if len(error_item) != 0:
         print(f"ダンプデータ参照の過程でエラーが生じた動画が{len(error_item)}件あります。")
         print("表示する場合はEnterを押してください。表示しない場合は\"NO\"と入力してください。")
@@ -167,6 +175,45 @@ def get_resource_urls():
             for item in error_item:
                 print(f"{item.get('video_id')}\t{item.get('title')}")
             print("-----------------------------")
+
+
+def format_file_size(size):
+    units = ["bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"]
+    index = 0
+    while size >= 1000 and index < len(units) - 1:
+        size /= 1000
+        index += 1
+    return f"{size:.2f} {units[index]}"
+
+
+def get_file_size(url):
+    response = requests.head(url, allow_redirects=True)
+    if 'Content-Length' in response.headers:
+        size = int(response.headers['Content-Length'])
+        return size
+    else:
+        return 0
+
+
+def get_total_size(urls):
+    total_size = 0
+    completed_count = 0
+    total_count = len(urls)
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=20) as executor:
+        # 各URLを並列で実行し、結果を取得
+        futures = [executor.submit(get_file_size, url) for url in urls]
+
+        # 各結果を総サイズに加算
+        for future in concurrent.futures.as_completed(futures):
+            total_size += future.result()
+            completed_count += 1
+
+            progress = (completed_count / total_count) * 100
+            print(f"\rProgress: {progress:.2f}% ({completed_count}/{total_count})", end="")
+
+    print("")
+    return total_size
 
 
 # URL先のコンテンツを取得できればヨシ！
