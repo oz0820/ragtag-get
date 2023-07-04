@@ -178,8 +178,8 @@ def get_resource_urls():
 def format_file_size(size):
     units = ["bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"]
     index = 0
-    while size >= 1000 and index < len(units) - 1:
-        size /= 1000
+    while size >= 1024 and index < len(units) - 1:
+        size /= 1024
         index += 1
     return f"{size:.2f} {units[index]}"
 
