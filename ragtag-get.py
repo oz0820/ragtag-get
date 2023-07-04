@@ -144,7 +144,6 @@ def get_resource_urls():
             for u in output_list:
                 print(u)
             print("-----------------------------")
-            break
         elif s == "2":
             str_export_path = input("exportPath> ")
             str_export_path = get_clean_path(str_export_path)
@@ -156,7 +155,6 @@ def get_resource_urls():
                 for u in output_list:
                     f.write(u + "\n")
             print(f"{export_path} に書き出しました。")
-            break
         elif s == "3":
             total_size = get_total_size(output_list)
             print(format_file_size(total_size))
